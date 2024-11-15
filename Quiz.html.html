@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive AI Quiz</title>
+
+    <!-- Google Fonts for a more attractive font -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600&family=Open+Sans:wght@300&display=swap" rel="stylesheet">
+    
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: #2b2d42; /* Dark background */
+            color: #f2f2f2; /* Light text color */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+
+        /* Header Section */
+        .header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298); /* Gradient background */
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+            width: 100%;
+            border-bottom: 8px solid #e9ecef;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        /* Header Text */
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 50px;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            animation: slideInLeft 1.5s ease-out;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 300;
+            color: #edf2f4;
+            margin-bottom: 20px;
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        /* Quiz Container */
+        .quiz-container {
+            background-color: #1d1f27; /* Dark container */
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            text-align: center;
+            width: 320px;
+            margin-top: 20px;
+        }
+
+        #conversation {
+            font-size: 18px;
+            color: #e9ecef;
+            margin-bottom: 15px;
+        }
+
+        #answer-buttons {
+            margin-top: 20px;
+        }
+
+        .answer-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .answer-button:hover {
+            background-color: #45a049;
+        }
+
+        #next-button {
+            margin-top: 20px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #next-button:hover {
+            background-color: #0056b3;
+        }
+
+        #score-container {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        /* Adjusting styles for responsiveness */
+        @media (max-width: 500px) {
+            .quiz-container {
+                width: 90%;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            .answer-button {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            #next-button {
+                font-size: 14px;
+                padding: 10px;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes slideInLeft {
+            0% { transform: translateX(-100%); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Header Section with Gradient and Animations -->
+    <div class="header">
+        <h1>Interactive AI Quiz</h1>
+        <h2>Test your knowledge with AI-like interaction!</h2>
+    </div>
+
+    <!-- Quiz Container -->
+    <div class="quiz-container">
+        <div id="conversation">
+            <p>Welcome to the quiz! I am your AI assistant. Let's begin!</p>
+        </div>
+        <div id="answer-buttons">
+            <button class="answer-button">Answer 1</button>
+            <button class="answer-button">Answer 2</button>
+            <button class="answer-button">Answer 3</button>
+            <button class="answer-button">Answer 4</button>
+        </div>
+        <div id="next-button-container">
+            <button id="next-button" style="display:none;">Next Question</button>
+        </div>
+        <div id="score-container">
+            <p>Your score: <span id="score">0</span></p>
+        </div>
+    </div>
+
+    <script>
+        // AI model (simple implementation) - Randomizing Questions
+        const questions = [
+            {
+                question: "What is the capital of France?",
+                answers: ["Berlin", "Madrid", "Paris", "Rome"],
+                correctAnswer: "Paris"
+            },
+            {
+                question: "Which planet is known as the Red Planet?",
+                answers: ["Earth", "Mars", "Jupiter", "Venus"],
+                correctAnswer: "Mars"
+            },
+            {
+                question: "Who wrote 'Romeo and Juliet'?",
+                answers: ["Shakespeare", "Dickens", "Hemingway", "Austen"],
+                correctAnswer: "Shakespeare"
+            }
+        ];
+
+        // Function to shuffle questions array
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+            }
+        }
+
+        shuffleArray(questions); // Shuffle the questions before starting
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        const questionElement = document.getElementById("conversation");
+        const answerButtons = document.querySelectorAll(".answer-button");
+        const nextButton = document.getElementById("next-button");
+        const scoreElement = document.getElementById("score");
+
+        // AI will ask the question
+        function askQuestion() {
+            const currentQuestion = questions[currentQuestionIndex];
+            questionElement.innerHTML = `<p><strong>AI:</strong> ${currentQuestion.question}</p>`;
+
+            answerButtons.forEach((button, index) => {
+                button.textContent = currentQuestion.answers[index];
+                button.disabled = false;
+            });
+
+            nextButton.style.display = "none";  // Hide "Next" button until an answer is selected
+        }
+
+        // Function to check the answer
+        function checkAnswer(selectedAnswer) {
+            const currentQuestion = questions[currentQuestionIndex];
+            if (selectedAnswer === currentQuestion.correctAnswer) {
+                score++;
+                scoreElement.textContent = score;
+                questionElement.innerHTML += `<p><strong>AI:</strong> Correct! Well done!</p>`;
+            } else {
+                questionElement.innerHTML += `<p><strong>AI:</strong> Oops! That's not quite right. The correct answer is ${currentQuestion.correctAnswer}.</p>`;
+            }
+
+            // Disable all answer buttons after an answer is selected
+            answerButtons.forEach(button => button.disabled = true);
+            nextButton.style.display = "inline-block";  // Show the "Next" button after an answer
+        }
+
+        // Event listeners for answer buttons
+        answerButtons.forEach(button => {
+            button.addEventListener("click", (e) => {
+                checkAnswer(e.target.textContent);
+            });
+        });
+
+        // Event listener for "Next Question" button
+        nextButton.addEventListener("click", () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                askQuestion();
+            } else {
+                questionElement.innerHTML += `<p><strong>AI:</strong> You've finished the quiz! Your final score is: ${score}</p>`;
+                nextButton.style.display = "none";  // Hide the "Next" button after the quiz is finished
+            }
+        });
+
+        // Initial call to ask the first question
+        askQuestion();
+    </script>
+</body>
+</html>
